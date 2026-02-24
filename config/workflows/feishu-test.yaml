@@ -1,0 +1,25 @@
+name: "飞书测试"
+schedule: null
+
+steps:
+  - id: collect
+    action: collect
+    sources:
+      - type: rss
+        url: "https://news.ycombinator.com/rss"
+        label: "Hacker News"
+    output: raw_news
+
+  - id: analyze
+    action: analyze
+    input: "${raw_news}"
+    prompt: "templates/news_analysis.md"
+    output: analysis
+
+  - id: push
+    action: publish
+    input: "${analysis}"
+    channel: feishu-test
+    format:
+      title: "🔬 飞书测试推送"
+      footer: "由探微 Bot 自动生成"

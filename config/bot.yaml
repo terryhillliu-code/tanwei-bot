@@ -1,0 +1,30 @@
+name: "探微 Bot"
+timezone: "Asia/Shanghai"
+log_level: "INFO"
+
+providers:
+  dashscope:
+    api_key: "${DASHSCOPE_API_KEY}"
+    base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
+
+default_model:
+  provider: dashscope
+  model: qwen3.5-plus
+  max_tokens: 4000
+  timeout: 180
+
+channels:
+  dingtalk-main:
+    type: dingtalk
+    webhook: "${DINGTALK_WEBHOOK}"
+    secret: "${DINGTALK_SECRET}"
+
+  feishu-main:
+    type: feishu
+    # 正式应用使用环境变量 FEISHU_APP_ID/SECRET/CHAT_ID
+    # Webhook 作为降级方案保留
+    webhook: "${FEISHU_WEBHOOK}"
+
+workflows:
+  - news-intel
+  - daily-report

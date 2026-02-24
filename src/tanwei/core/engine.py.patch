@@ -1,0 +1,9 @@
+        # 格式化为文本（URL 更突出）
+        lines = []
+        for i, r in enumerate(all_results, 1):
+            line = f"{i}. 【{r.source_label}】{r.title}"
+            if r.url:
+                line += f"\n   链接: {r.url}"
+            if r.summary:
+                line += f"\n   摘要: {r.summary[:150]}"
+            lines.append(line)

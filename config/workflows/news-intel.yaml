@@ -1,0 +1,44 @@
+name: "全球要闻简报"
+schedule: "every 2h"
+
+steps:
+  - id: collect
+    action: collect
+    sources:
+      - type: rss
+        url: "https://news.ycombinator.com/rss"
+        label: "Hacker News"
+      - type: rss
+        url: "https://feeds.bbci.co.uk/news/rss.xml"
+        label: "BBC News"
+      - type: rss
+        url: "https://www.36kr.com/feed"
+        label: "36氪"
+    output: raw_news
+
+  - id: analyze
+    action: analyze
+    input: "${raw_news}"
+    prompt: "templates/news_analysis.md"
+    output: analysis
+
+  - id: push-dingtalk
+    action: publish
+    input: "${analysis}"
+    channel: dingtalk-main
+    format:
+      title: "📰 {date} 全球要闻简报"
+      footer: "由探微情报自动生成 · {time}"
+
+  - id: push-feishu
+    action: publish
+    input: "${analysis}"
+    channel: feishu-main
+    format:
+      title: "📰 {date} 全球要闻简报"
+      footer: "由探微情报自动生成 · {time}"
+
+fallback:
+  on_collect_fail: abort
+  on_analyze_fail: raw_push
+  on_push_fail: retry_3

@@ -1,0 +1,48 @@
+name: "每日早报"
+schedule: "daily 08:00"
+
+steps:
+  - id: collect
+    action: collect
+    sources:
+      - type: rss
+        url: "https://news.ycombinator.com/rss"
+        label: "Hacker News"
+      - type: rss
+        url: "https://feeds.bbci.co.uk/news/rss.xml"
+        label: "BBC"
+      - type: rss
+        url: "https://www.36kr.com/feed"
+        label: "36氪"
+    output: raw_news
+
+  - id: analyze
+    action: analyze
+    input: "${raw_news}"
+    prompt: "templates/daily_brief.md"
+    model:
+      provider: dashscope
+      model: qwen3.5-plus
+      max_tokens: 4000
+    output: report
+
+  - id: push-dingtalk
+    action: publish
+    input: "${report}"
+    channel: dingtalk-main
+    format:
+      title: "🌅 {date} AI 早报"
+      footer: "由探微情报自动生成"
+
+  - id: push-feishu
+    action: publish
+    input: "${report}"
+    channel: feishu-main
+    format:
+      title: "🌅 {date} AI 早报"
+      footer: "由探微情报自动生成"
+
+fallback:
+  on_collect_fail: abort
+  on_analyze_fail: abort
+  on_push_fail: retry_3

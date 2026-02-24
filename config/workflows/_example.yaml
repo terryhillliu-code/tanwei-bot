@@ -1,0 +1,32 @@
+# 自定义工作流模板
+# 复制此文件并修改
+name: "我的工作流"
+schedule: "every 4h"    # 或 "daily 09:00" 或 null（手动触发）
+
+steps:
+  - id: collect
+    action: collect
+    sources:
+      - type: rss
+        url: "https://your-rss-feed.com/rss"
+        label: "信息源名称"
+    output: raw_data
+
+  - id: analyze
+    action: analyze
+    input: "${raw_data}"
+    prompt: "templates/news_analysis.md"
+    output: result
+
+  - id: push
+    action: publish
+    input: "${result}"
+    channel: dingtalk-main
+    format:
+      title: "📢 {date} 消息推送"
+      footer: "由探微 Bot 自动生成"
+
+fallback:
+  on_collect_fail: abort
+  on_analyze_fail: raw_push
+  on_push_fail: retry_3

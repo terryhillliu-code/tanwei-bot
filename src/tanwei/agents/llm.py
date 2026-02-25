@@ -6,6 +6,7 @@ import httpx
 
 from tanwei.core.config import ModelConfig, ProviderConfig
 from tanwei.core.logger import get_logger
+from tanwei.core.usage import record_usage
 
 logger = get_logger("agent.llm")
 
@@ -28,6 +29,7 @@ class LLMClient:
         self,
         messages: list[dict],
         model_config: ModelConfig,
+        workflow_name: str = "",
     ) -> LLMResponse | None:
         """调用 LLM chat completion"""
         provider = self.providers.get(model_config.provider)
@@ -67,6 +69,16 @@ class LLMClient:
                     + (f", tokens={tokens}" if tokens else "")
                 )
 
+                # 记录用量
+                if tokens:
+                    record_usage(
+                        provider=model_config.provider,
+                        model=model_config.model,
+                        tokens=tokens,
+                        source="tanwei-bot",
+                        workflow=workflow_name,
+                    )
+
                 return LLMResponse(
                     content=content,
                     model=model_config.model,
@@ -92,11 +104,12 @@ class LLMClient:
         system_prompt: str,
         user_content: str,
         model_config: ModelConfig,
+        workflow_name: str = "",
     ) -> str | None:
         """便捷方法：分析内容"""
         messages = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_content},
         ]
-        result = await self.chat(messages, model_config)
+        result = await self.chat(messages, model_config, workflow_name=workflow_name)
         return result.content if result else None

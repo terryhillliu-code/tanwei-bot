@@ -170,3 +170,19 @@ def check(config_dir):
 
 if __name__ == "__main__":
     main()
+
+@main.command()
+@click.option("--date", "-d", default=None, help="日期 (YYYY-MM-DD)，默认今天")
+def usage(date):
+    """查看 LLM 用量统计"""
+    from tanwei.core.usage import format_usage_report, get_daily_usage
+    
+    report = format_usage_report(date)
+    click.echo(report)
+    
+    # 简单费用估算（qwen-plus 约 0.004元/千tokens）
+    usage_data = get_daily_usage(date)
+    if usage_data["total"] > 0:
+        cost = usage_data["total"] / 1000 * 0.004
+        click.echo(f"\n**预估费用**: ¥{cost:.3f}")
+

@@ -145,7 +145,7 @@ class WorkflowEngine:
             return None
 
         # 调用 LLM
-        result = await self.llm.analyze(system_prompt, user_content, model_config)
+        result = await self.llm.analyze(system_prompt, user_content, model_config, workflow_name=workflow.name)
         return result
 
     async def _step_publish(self, step: StepConfig, workflow: WorkflowConfig) -> bool:

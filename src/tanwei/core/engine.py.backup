@@ -39,7 +39,7 @@ class WorkflowEngine:
 
             try:
                 if step.action == "collect":
-                    result = await self._step_collect(step, workflow.name)
+                    result = await self._step_collect(step)
                 elif step.action == "analyze":
                     result = await self._step_analyze(step, workflow)
                 elif step.action == "publish":
@@ -77,10 +77,8 @@ class WorkflowEngine:
         logger.info(f"=== 工作流完成: {workflow.name} ({elapsed:.1f}s) ===")
         return True
 
-    async def _step_collect(self, step: StepConfig, workflow_name: str = "") -> str | None:
-        """采集步骤（支持增量去重）"""
-        from tanwei.core.dedup import filter_new_items
-        
+    async def _step_collect(self, step: StepConfig) -> str | None:
+        """采集步骤"""
         if not step.sources:
             logger.warning("采集步骤无数据源配置")
             return None
@@ -99,23 +97,9 @@ class WorkflowEngine:
             logger.warning("所有数据源采集失败")
             return None
 
-        # 去重逻辑：daily-report 全量推送（重置记录），news-intel 增量推送
-        is_daily = "daily" in workflow_name.lower() or "早报" in workflow_name
-        
-        if is_daily:
-            logger.info("📰 每日早报模式：全量推送（重置去重记录）")
-            filtered_results = filter_new_items(all_results, reset=True)
-        else:
-            logger.info("📰 新闻简报模式：增量推送（过滤已推送）")
-            filtered_results = filter_new_items(all_results, reset=False)
-        
-        if not filtered_results:
-            logger.info("✅ 无新增新闻，跳过本次推送")
-            return None
-
         # 格式化为文本
         lines = []
-        for i, r in enumerate(filtered_results, 1):
+        for i, r in enumerate(all_results, 1):
             line = f"{i}. 【{r.source_label}】{r.title}"
             if r.summary:
                 line += f"\n   摘要: {r.summary[:150]}"
@@ -124,7 +108,7 @@ class WorkflowEngine:
             lines.append(line)
 
         text = "\n\n".join(lines)
-        logger.info(f"采集完成: 原始 {len(all_results)} 条，新增 {len(filtered_results)} 条，{len(text)} 字符")
+        logger.info(f"采集完成: {len(all_results)} 条，{len(text)} 字符")
         return text
 
     async def _step_analyze(self, step: StepConfig, workflow: WorkflowConfig) -> str | None:

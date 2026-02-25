@@ -3,12 +3,19 @@ timezone: "Asia/Shanghai"
 log_level: "INFO"
 
 providers:
+  # 原有的 DashScope（保留）
   dashscope:
     api_key: "${DASHSCOPE_API_KEY}"
     base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
 
+  # Coding Plan（新增，使用特殊 endpoint）
+  coding-plan:
+    api_key: "${CODING_PLAN_API_KEY}"
+    base_url: "https://coding.dashscope.aliyuncs.com/v1"
+
+# 默认使用 Coding Plan
 default_model:
-  provider: dashscope
+  provider: coding-plan
   model: qwen3.5-plus
   max_tokens: 4000
   timeout: 180
@@ -21,8 +28,6 @@ channels:
 
   feishu-main:
     type: feishu
-    # 正式应用使用环境变量 FEISHU_APP_ID/SECRET/CHAT_ID
-    # Webhook 作为降级方案保留
     webhook: "${FEISHU_WEBHOOK}"
 
 workflows:
